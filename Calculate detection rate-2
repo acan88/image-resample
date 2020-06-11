@@ -1,0 +1,39 @@
+clear;
+%计算下采样检测率
+
+%处理图片，共10000张重采样，计算出标准差，再与阈值（0.0125）比较
+%TP是重采样被测定为重采样
+
+maindir = 'C:\Users\yao xiannv\Desktop\Stego';   %引号里面填图片所在的文件路径
+%savedir ='C:\Users\yao xiannv\Desktop\tp';    %引号里面填图片处理后要保存到的所在文件路径
+subdirpath = fullfile( maindir, '*.jpg' ); %读取文件夹中jpg格式的图片（以jpg格式图片为例，也可以是其他格式）
+img = dir(subdirpath);   %将找到的所有图片内容传递给img
+
+%A=zeros(1,20);
+for j=0.1:0.1:0.9
+    tp=0;
+    %B=zeros(1,100);
+    for i=1:100
+        imagepath=fullfile( maindir,img( i ).name);%将第 j 张中的图片路径传递给 imagepath 
+        image=imread(imagepath); %读取第 j 张图片
+        %fa = imresize(image,j,'bilinear');
+        %fa = imresize(image,j,'nearest');
+        fa = imresize(image,j,'bicubic');
+        mask=[0,1,0;1,-4,1;0,1,0];%拉普拉斯滤波模板
+        faa=imfilter(fa,mask,'replicate');
+        %fa = imresize(Ib,[height/1.2,width/1.2],'bilinear');
+        Ic=im2double(faa);
+        Fd=fft2(Ic);
+        Fe=log(abs(Fd)+1);
+        Fg=fftshift(Fe);
+        Sa=log(abs(Fg)+1);
+        yc=std(Sa);
+        yd=std(yc,0,2);
+        if yd<0.0125
+            tp=tp+1;
+        end 
+        
+    end
+    disp(tp);
+    A(:)=tp;
+end
