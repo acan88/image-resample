@@ -1,0 +1,45 @@
+clear;
+%添加椒盐噪声/高斯噪声计算上采样检测率
+
+%g=imnoise(f,‘salt & pepper’,d)用椒盐噪声污染图像f，其中d是噪声密度（即包括噪声值的图像区域的百分比）。因此，大约有d*numel（f）个像素受到影响。默认的噪声密度为0.05
+%g=imnoise(f,‘gaussian’,m,var)将均值m,方差为var的高斯噪声加到图像f上，默认值是均值m为0，方差var为0.01的噪声。
+%处理图片，共1000张重采样，计算出标准差，再与阈值（0.0405）比较
+%TP是重采样被测定为重采样
+
+maindir = 'C:\Users\yao xiannv\Desktop\Stego';   %引号里面填图片所在的文件路径
+savedir ='C:\Users\yao xiannv\Desktop\yo\';    %引号里面填图片处理后要保存到的所在文件路径
+subdirpath = fullfile( maindir, '*.jpg' ); %读取文件夹中jpg格式的图片（以jpg格式图片为例，也可以是其他格式）
+img = dir(subdirpath);   %将找到的所有图片内容传递给img
+
+%A=zeros(1,20);
+for j=1.1:0.1:2.0
+    tp=0;
+    %B=zeros(1,100);
+    for i=1:10
+        path=[savedir,num2str(i),'.jpg'];
+        imagepath=fullfile( maindir,img( i ).name);%将第 j 张中的图片路径传递给 imagepath 
+        image=imread(imagepath); %读取第 j 张图片
+        
+        g=imnoise(image,'salt & pepper',0.1);
+        %g=imnoise(image,'gaussian',0,0.001);
+        %fa = imresize(g,j,'bilinear');
+        %fa = imresize(image,j,'nearest');
+        fa = imresize(g,j,'bicubic');
+        %mask=[0,1,0;1,-4,1;0,1,0];%拉普拉斯滤波模板
+        %faa=imfilter(fa,mask,'replicate');
+        %fa = imresize(Ib,[height/1.2,width/1.2],'bilinear');
+        Ic=im2double(fa);
+        Fd=fft2(Ic);
+        Fe=log(abs(Fd)+1);
+        Fg=fftshift(Fe);
+        Sa=log(abs(Fg)+1);
+        yc=std(Sa);
+        yd=std(yc,0,2);
+        if yd>0.0405
+            tp=tp+1;
+        end 
+        
+    end
+    disp(tp);
+    A(:)=tp;
+end
