@@ -1,0 +1,16 @@
+clear;
+%拉东变换的检测率
+
+img=imread('Baboon.tiff');
+ed=edge(img,'canny');
+r=radon(ed,45);   %系统自带
+Fs=1000;
+N=length(r);
+f = fftshift(fft(r));
+X1= -Fs/2;
+X2= Fs/2;
+w = linspace(X1, X2, N);%频率坐标，单位Hz
+plot(w,abs(f)); %abs(f)的值对应横坐标
+%plot(w,(f));
+title('信号的频谱');
+xlabel('频率(Hz)'); 
