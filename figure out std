@@ -1,0 +1,50 @@
+clear; 
+%计算标准差
+
+maindir = 'C:\Users\yao xiannv\Desktop\Stego';   %引号里面填图片所在的文件路径
+%savedir ='   ';    %引号里面填图片处理后要保存到的所在文件路径
+subdirpath = fullfile( maindir, '*.jpg' ); %读取文件夹中jpg格式的图片（以jpg格式图片为例，也可以是其他格式）
+
+img = dir( subdirpath);   %将找到的所有图片内容传递给img
+%for j = 1 : length( img)    % length( img)是该图片文件夹中图片的个数
+for j=1:2500
+imagepath=fullfile( maindir,img( j ).name);%将第 j 张中的图片路径传递给 imagepath 
+image=imread(imagepath); %读取第 j 张图片
+
+%Ia=imread('image');
+Ib=im2double(image);
+Fb=fft2(Ib);
+Fc=log(abs(Fb)+1);
+Fs=fftshift(Fc);
+S=log(abs(Fs)+1);
+ya=std(S);
+yb=std(ya,0,2);%原始图像的标准差
+A(:,j)=yb;
+
+%下采样
+%[height,width,~]=size(Ib);
+fa = imresize(image,0.8,'bilinear');
+%fa = imresize(image,2,'bilinear');
+mask=[0,1,0;1,-4,1;0,1,0];%拉普拉斯滤波模板
+faa=imfilter(fa,mask,'replicate');
+%fa = imresize(Ib,[height/1.2,width/1.2],'bilinear');
+Ic=im2double(faa);
+Fd=fft2(Ic);
+Fe=log(abs(Fd)+1);
+Fg=fftshift(Fe);
+Sa=log(abs(Fg)+1);
+yc=std(Sa);
+yd=std(yc,0,2);
+B(:,j)=yd;
+
+end
+
+x=1:2500;%x轴上的数据，第一个值代表数据开始，第二个值代表间隔，第三个值代表终止
+plot(x,A,'-b',x,B,'-r'); %线性，颜色，标记
+axis([0,2500,0,0.1])  %确定x轴与y轴框图大小
+set(gca,'XTick',[1:500:2500]) %x轴范围1-10000，间隔1000
+%set(gca,'YTick',[0:0.01:0.1]) %y轴范围0-700，间隔100
+set(gca,'YTick',[0:0.006:0.1]) %y轴范围0-700，间隔100
+legend('原始图像','下采样');   %右上角标注
+xlabel('图像序列')  %x轴坐标描述
+ylabel('傅里叶变换频谱图的标准偏差') %y轴坐标描述
