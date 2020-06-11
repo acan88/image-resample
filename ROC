@@ -1,0 +1,48 @@
+clear;
+%roc曲线
+maindir = 'C:\Users\yao xiannv\Desktop\Stego';   %引号里面填图片所在的文件路径
+subdirpath = fullfile( maindir, '*.jpg' ); %读取文件夹中jpg格式的图片（以jpg格式图片为例，也可以是其他格式）
+img = dir( subdirpath);   %将找到的所有图片内容传递给img
+for i=1:1000
+    label_test(i)=1; %原始图像
+end
+for i=1001:2000
+    label_test(i)=0; %重采样图像
+end
+
+
+
+for i=1:1000
+        imagepath=fullfile( maindir,img( i ).name);%将第 j 张中的图片路径传递给 imagepath 
+        image=imread(imagepath); %读取第 j 张图片
+        Ic=im2double(image);
+        Fd=fft2(Ic);
+        Fe=log(abs(Fd)+1);
+        Fg=fftshift(Fe);
+        Sa=log(abs(Fg)+1);
+        yc=std(Sa);
+        yd=std(yc,0,2);   
+        test_results(:,i)=yd-0.0405;     
+end
+    
+for i=1001:2000
+    imagepath=fullfile( maindir,img( i ).name);%将第 j 张中的图片路径传递给 imagepath 
+        image=imread(imagepath); %读取第 j 张图片
+        fa = imresize(image,2,'bilinear');
+        Ic=im2double(fa);
+        Fd=fft2(Ic);
+        Fe=log(abs(Fd)+1);
+        Fg=fftshift(Fe);
+        Sa=log(abs(Fg)+1);
+        yc=std(Sa);
+        yd=std(yc,0,2);
+        test_results(:,i)=yd-0.0405; 
+        
+end
+
+labels = label_test;
+votes  = test_results;
+[X,Y,T,auc] = perfcurve(labels,votes,0);
+figure(4);clf;plot(X,Y);hold on;plot([0 1],[0 1],':k');
+xlabel('False positive rate'); ylabel('True positive rate');title('ROC');
+legend(sprintf('AUC = %.4f',auc));
