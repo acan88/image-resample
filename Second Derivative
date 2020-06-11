@@ -1,0 +1,21 @@
+%二阶差分+傅里叶变换
+I=imread('Baboon.tiff');
+[H,W]=size(I);
+M=double(I);
+J=M;
+for i=2:H-1
+    for j=2:W-1
+        J(i,j)=2*M(i,j)-M(i+1,j)-M(i,j-1);%二阶差分公式
+    end
+end
+
+Fs=1000;
+N=length(J);
+f = fftshift(fft(J));
+X1= -Fs/2;
+X2= Fs/2;
+w = linspace(X1, X2, N);%频率坐标，单位Hz
+plot(w,abs(f)); %abs(f)的值对应横坐标
+%plot(w,(f));
+title('信号的频谱');
+xlabel('频率(Hz)'); 
