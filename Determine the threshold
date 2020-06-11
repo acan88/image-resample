@@ -1,0 +1,65 @@
+clear;
+%确定阈值
+
+%处理图片，共100张，50张重采样，50张原始图像，分别计算出标准差，再与阈值比较
+%判定预测结果是重采样图像还是原始图像。然后再和真实结果比较
+%TP是重采样被测定为重采样，FN是重采样被测定为真实图像
+%FP是真实图像被测定为重采样
+fp=0;tp=0;
+maindir = 'C:\Users\yao xiannv\Desktop\Stego';   %引号里面填图片所在的文件路径
+%savedir ='C:\Users\yao xiannv\Desktop\tp';    %引号里面填图片处理后要保存到的所在文件路径
+subdirpath = fullfile( maindir, '*.jpg' ); %读取文件夹中jpg格式的图片（以jpg格式图片为例，也可以是其他格式）
+
+img = dir(subdirpath);   %将找到的所有图片内容传递给img
+for x=0.03:0.001:0.06
+    for j = 1 : 50    % length( img)是该图片文件夹中图片的个数
+        imagepath=fullfile( maindir,img( j ).name);%将第 j 张中的图片路径传递给 imagepath 
+        image=imread(imagepath); %读取第 j 张图片
+%计算正检率
+        Ib=im2double(image);
+        Fb=fft2(Ib);
+        Fc=log(abs(Fb)+1);
+        Fs=fftshift(Fc);
+        S=log(abs(Fs)+1);
+        ya=std(S);
+        yb=std(ya,0,2);%原始图像的标准差
+        A(:,j)=yb;
+        if A(j)>x
+            fp=fp+1;
+        end
+     FP(:)=fp;   
+    end
+
+for i=51:100
+    imagepath=fullfile( maindir,img( i ).name);%将第 j 张中的图片路径传递给 imagepath 
+    image=imread(imagepath); %读取第 j 张图片
+    fa = imresize(image,2,'bilinear');
+    %mask=[0,1,0;1,-4,1;0,1,0];%拉普拉斯滤波模板
+    %faa=imfilter(fa,mask,'replicate');
+    %fa = imresize(Ib,[height/1.2,width/1.2],'bilinear');
+    Ic=im2double(fa);
+    Fd=fft2(Ic);
+    Fe=log(abs(Fd)+1);
+    Fg=fftshift(Fe);
+    Sa=log(abs(Fg)+1);
+    yc=std(Sa);
+    yd=std(yc,0,2);
+    B(:,i-50)=yd;
+    if B(i-50)>x
+        tp=tp+1;
+    end
+end
+TP(:)=tp;%计算误检率
+FN(:)=50-TP();
+end
+%在同一幅图中找正检率和误检率的交点确定阈值
+FNR=TP/(TP+FN)*100;
+FPR=FP/(TP+FP)*100;
+x=0.03:0.06;%x轴上的数据，第一个值代表数据开始，第二个值代表间隔，第三个值代表终止
+plot(x,A,'-b',x,B,'-r'); %线性，颜色，标记
+axis([0.03,0.06,0,100])  %确定x轴与y轴框图大小
+%set(gca,'XTick',[1:5:100]) %x轴范围1-10000，间隔1000
+%set(gca,'YTick',[0:0.006:0.06]) %y轴范围0-700，间隔100
+legend('正检率','误检率');   %右上角标注
+xlabel('阈值')  %x轴坐标描述
+ylabel('率x100%') %y轴坐标描述
